@@ -205,7 +205,7 @@ final class KeyWardenClient
     }
 
     // =====================================================================
-    // ISV CODE PROTECTION (seal / unlock / unseal)  - v1.2.1
+    // ISV CODE PROTECTION (seal / unlock / unseal)  - v1.2.2
     //
     // Lock part of your product so it only runs for a valid, activated licence.
     //   seal($data, $key)            build time: lock a file with the content key.
