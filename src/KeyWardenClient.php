@@ -204,6 +204,143 @@ final class KeyWardenClient
         return hash('sha256', $joined);
     }
 
+    // =====================================================================
+    // ISV CODE PROTECTION (seal / unlock / unseal)  - v1.2.1
+    //
+    // Lock part of your product so it only runs for a valid, activated licence.
+    //   seal($data, $key)            build time: lock a file with the content key.
+    //   unlockFromToken($t, $mid)    runtime, offline: key from the validate token.
+    //   unsealOnline($key, $opts)    runtime, online: live check, real-time revoke.
+    //   unseal($blob, $key)          runtime: decrypt what you sealed.
+    // All AES-256-GCM (via openssl). The content key is machine-bound: unlock
+    // needs the SAME machineId you send to validate.
+    // =====================================================================
+
+    private const UNSEAL_PATH = '/keywarden/unseal';
+    private const CK_WRAP_INFO = 'kw-ck-wrap-v1';
+
+    private static function asKey($k): string
+    {
+        // Accept either the raw 32-byte key (e.g. from unlock()) or its base64
+        // form (e.g. from the vendor console). A raw key is exactly 32 bytes;
+        // base64 of 32 bytes is 44 chars, so the length tells them apart.
+        $s = (string) $k;
+        $key = strlen($s) === 32 ? $s : base64_decode($s, true);
+        if ($key === false || strlen($key) !== 32) {
+            throw new KeyWardenError('content key must be 32 bytes', 'bad_key');
+        }
+        return $key;
+    }
+
+    /** BUILD TIME: lock $data with your content key. Returns a "KW-SEAL-1:..." string. */
+    public static function seal(string $data, string $contentKeyBase64): string
+    {
+        $key = self::asKey($contentKeyBase64);
+        $iv = random_bytes(12);
+        $tag = '';
+        $ct = openssl_encrypt($data, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+        if ($ct === false) {
+            throw new KeyWardenError('seal failed', 'seal_failed');
+        }
+        return 'KW-SEAL-1:' . base64_encode($iv) . ':' . base64_encode($tag) . ':' . base64_encode($ct);
+    }
+
+    /** RUNTIME: turn a machine-bound $ck into the 32-byte content key. */
+    public static function unlock(string $ck, string $machineId): string
+    {
+        $p = explode(':', $ck);
+        if (count($p) !== 6 || $p[0] !== '1') {
+            throw new KeyWardenError('bad ck format', 'bad_ck');
+        }
+        $salt = base64_decode($p[2], true);
+        $iv = base64_decode($p[3], true);
+        $tag = base64_decode($p[4], true);
+        $body = base64_decode($p[5], true);
+        $wrapKey = hash_hkdf('sha256', $machineId, 32, self::CK_WRAP_INFO, $salt);
+        $out = openssl_decrypt($body, 'aes-256-gcm', $wrapKey, OPENSSL_RAW_DATA, $iv, $tag);
+        if ($out === false) {
+            throw new KeyWardenError('could not unlock the content key - wrong machineId or tampered token', 'unlock_failed');
+        }
+        return $out;
+    }
+
+    /** RUNTIME: pull the content key out of a validate token's `ck` claim. */
+    public static function unlockFromToken(string $token, string $machineId): string
+    {
+        $parts = explode('.', $token);
+        if (count($parts) < 2) {
+            throw new KeyWardenError('not a token', 'bad_token');
+        }
+        $json = base64_decode(strtr($parts[1], '-_', '+/'), true);
+        $claims = $json !== false ? json_decode($json, true) : null;
+        if (!is_array($claims)) {
+            throw new KeyWardenError('could not read token', 'bad_token');
+        }
+        if (empty($claims['ck'])) {
+            throw new KeyWardenError('this licence has no content key (product not protected)', 'no_ck');
+        }
+        return self::unlock($claims['ck'], $machineId);
+    }
+
+    /** RUNTIME, ONLINE: POST /unseal and return the content key. Real-time revocation. */
+    public static function unsealOnline(string $key, array $opts): string
+    {
+        $apimKey = $opts['apimKey'] ?? '';
+        $machineId = $opts['machineId'] ?? '';
+        if ($apimKey === '') {
+            throw new KeyWardenError('apimKey is required (your APIM subscription key)', 'missing_apim_key');
+        }
+        if ($machineId === '') {
+            throw new KeyWardenError('machineId is required (the key is bound to it)', 'missing_machine_id');
+        }
+        $baseUrl = rtrim($opts['baseUrl'] ?? self::DEFAULT_BASE, '/');
+        $payload = ['key' => $key];
+        if (!empty($opts['product'])) {
+            $payload['product'] = $opts['product'];
+        }
+        $request = [
+            'url' => $baseUrl . self::UNSEAL_PATH,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Ocp-Apim-Subscription-Key' => $apimKey,
+                'X-Machine-Id' => (string) $machineId,
+            ],
+            'body' => json_encode($payload),
+            'timeout' => $opts['timeout'] ?? 15,
+        ];
+        $transport = $opts['transport'] ?? [self::class, 'curlTransport'];
+        $response = $transport($request);
+        $status = $response['status'] ?? 0;
+        $rawBody = $response['body'] ?? null;
+        $body = (is_string($rawBody) && $rawBody !== '') ? json_decode($rawBody, true) : null;
+        if ($status >= 300 || $status === 0 || !is_array($body) || empty($body['ok']) || empty($body['ck'])) {
+            throw new KeyWardenError(
+                $body['error'] ?? "unseal failed ($status)",
+                $body['error'] ?? 'unseal_failed',
+                $status ?: null
+            );
+        }
+        return self::unlock($body['ck'], (string) $machineId);
+    }
+
+    /** RUNTIME: decrypt a "KW-SEAL-1:..." blob with the content key from unlock*(). */
+    public static function unseal(string $sealedBlob, string $contentKey): string
+    {
+        $p = explode(':', $sealedBlob);
+        if (count($p) !== 4 || $p[0] !== 'KW-SEAL-1') {
+            throw new KeyWardenError('not a KW-SEAL-1 blob', 'bad_blob');
+        }
+        $key = self::asKey($contentKey);
+        $iv = base64_decode($p[1], true);
+        $tag = base64_decode($p[2], true);
+        $ct = base64_decode($p[3], true);
+        $out = openssl_decrypt($ct, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+        if ($out === false) {
+            throw new KeyWardenError('could not unseal - wrong key or tampered blob', 'unseal_failed');
+        }
+        return $out;
+    }
+
     // ---- helpers ----------------------------------------------------------
 
     /**

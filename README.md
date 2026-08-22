@@ -95,6 +95,29 @@ package from its **own repository** (e.g. `myitandapps/key-warden-php`) rather t
 a subfolder of the SDK monorepo: push it, submit the repo URL once at
 packagist.org, and every `vX.Y.Z` tag thereafter publishes automatically.
 
+## Code protection (seal / unlock / unseal)
+
+Lock part of your product so it only runs for a valid, activated licence. Get
+your **content key** (base64) from the vendor console → **Protect your code**.
+
+```php
+use KeyWarden\KeyWardenClient as KW;
+
+// Build time — seal a file once:
+file_put_contents('secret.sealed', KW::seal(file_get_contents('secret.php'), $MY_CONTENT_KEY_B64));
+
+// Runtime — the key rides in the validate token as `ck`, machine-bound:
+$res = KW::validate($licence, ['apimKey' => $apim, 'clientKey' => $ck, 'machineId' => $mid]);
+$key  = KW::unlockFromToken($res['token'], $mid);   // raw content-key bytes
+$code = KW::unseal($sealedBlob, $key);              // your decrypted file
+
+// Or a live check every time (real-time revocation):
+$key = KW::unsealOnline($licence, ['apimKey' => $apim, 'machineId' => $mid]);
+```
+
+All AES-256-GCM (via `openssl`, needs `hash_hkdf` — PHP 7.1.2+). Unlock needs the
+SAME `machineId` you validate with. A revoked licence stops getting the key.
+
 ## Licence
 
 MIT.

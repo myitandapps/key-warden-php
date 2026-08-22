@@ -1,0 +1,7 @@
+# unzip key-warden-php-sdk-1.2.1.zip over your key-warden-php working copy
+git add .
+git commit -m "1.2.1: code protection (seal / unlock / unseal)"
+git push
+
+git tag v1.2.1
+git push --tags

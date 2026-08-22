@@ -242,5 +242,56 @@ check('machineIdFrom is stable and hashed', function () {
     assertTrue(strpos($i, 'host-abc') === false, 'hashed');
 });
 
+echo "\nkeywarden(php): code protection (seal / unlock / unseal)\n";
+
+// Mimic the SERVER: a random 32-byte key + machine-bound wrap.
+function serverWrap(string $key, string $mid, string $kid): string
+{
+    $salt = random_bytes(16);
+    $iv = random_bytes(12);
+    $wk = hash_hkdf('sha256', $mid, 32, 'kw-ck-wrap-v1', $salt);
+    $tag = '';
+    $ct = openssl_encrypt($key, 'aes-256-gcm', $wk, OPENSSL_RAW_DATA, $iv, $tag, '', 16);
+    return '1:' . $kid . ':' . base64_encode($salt) . ':' . base64_encode($iv) . ':' . base64_encode($tag) . ':' . base64_encode($ct);
+}
+
+check('seal -> unseal round-trips with the content key', function () {
+    $key = random_bytes(32);
+    $blob = KeyWardenClient::seal('licensed feature', base64_encode($key));
+    assertTrue(strncmp($blob, 'KW-SEAL-1:', 10) === 0, 'blob prefix');
+    assertTrue(KeyWardenClient::unseal($blob, $key) === 'licensed feature', 'round-trip');
+});
+
+check('unlock recovers the key only on the right machine', function () {
+    $key = random_bytes(32);
+    $ck = serverWrap($key, 'device-A', 'k1');
+    assertTrue(KeyWardenClient::unlock($ck, 'device-A') === $key, 'right machine');
+    $blocked = false;
+    try {
+        KeyWardenClient::unlock($ck, 'device-B');
+    } catch (KeyWardenError $e) {
+        $blocked = $e->errorCode === 'unlock_failed';
+    }
+    assertTrue($blocked, 'wrong machine blocked');
+});
+
+check('unlockFromToken pulls ck out of a validate token', function () {
+    $key = random_bytes(32);
+    $ck = serverWrap($key, 'device-A', 'k1');
+    $tok = 'h.' . b64url(json_encode(['ck' => $ck])) . '.s';
+    assertTrue(KeyWardenClient::unlockFromToken($tok, 'device-A') === $key, 'from token');
+});
+
+check('unsealOnline returns the content key', function () {
+    $key = random_bytes(32);
+    $ck = serverWrap($key, 'device-A', 'k1');
+    $got = KeyWardenClient::unsealOnline('LIC', [
+        'apimKey' => 'a',
+        'machineId' => 'device-A',
+        'transport' => transportReturning(200, ['ok' => true, 'ck' => $ck, 'keyId' => 'k1']),
+    ]);
+    assertTrue($got === $key, 'online key');
+});
+
 echo "\n  $PASS passed, $FAIL failed\n";
 exit($FAIL === 0 ? 0 : 1);
