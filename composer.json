@@ -5,12 +5,17 @@
     "license": "MIT",
     "keywords": ["key-warden", "keywarden", "licence", "license", "licensing", "activation", "ed25519", "offline-verification"],
     "homepage": "https://key-warden.com",
+    "support": {
+        "source": "https://github.com/myitandapps/key-warden-php",
+        "issues": "https://key-warden.com/contact"
+    },
     "authors": [
         { "name": "Key-Warden" }
     ],
     "require": {
         "php": ">=7.2",
         "ext-sodium": "*",
+        "ext-openssl": "*",
         "ext-curl": "*",
         "ext-json": "*"
     },
