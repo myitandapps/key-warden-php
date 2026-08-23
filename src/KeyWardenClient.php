@@ -25,6 +25,8 @@ namespace KeyWarden;
  */
 final class KeyWardenClient
 {
+    /** SDK version (matches the git tag / Packagist release). */
+    public const VERSION = '1.3.0';
     public const DEFAULT_BASE = 'https://api.key-warden.com';
     private const VALIDATE_PATH = '/keywarden/validate';
 
@@ -82,6 +84,61 @@ final class KeyWardenClient
         }
 
         return ['valid' => true, 'claims' => $claims];
+    }
+
+    // ---- FREE-TRIAL HELPERS (v1.3.0) -------------------------------------
+    // A trial licence is an ordinary key with two extra claims: trial:true and
+    // an exp (unix seconds). verifyToken()/validate() already refuse it once
+    // past exp; these read the facts for DISPLAY ("N days left", expired state).
+    // They never grant access - always gate on verifyToken()/validate() first.
+
+    /** @param mixed $x @return array the claims, from a result or a raw claims array */
+    private static function claimsOf($x): array
+    {
+        if (!is_array($x)) {
+            return [];
+        }
+        if (isset($x['claims']) && is_array($x['claims'])) {
+            return $x['claims'];
+        }
+        return $x; // already a claims array (carries exp/trial/product/...)
+    }
+
+    /**
+     * Trial facts for display.
+     *
+     * @param mixed    $resultOrClaims a verifyToken()/validate() result, or raw claims.
+     * @param int|null $now unix seconds; defaults to real time (for testing).
+     * @return array{isTrial:bool, expired:bool, expiresAt:?int, secondsRemaining:?int, daysRemaining:?int}
+     *   Days are rounded up (the last partial day still reads 1); 0 once expired.
+     */
+    public static function trialInfo($resultOrClaims, ?int $now = null): array
+    {
+        $c = self::claimsOf($resultOrClaims);
+        $at = $now ?? time();
+        $exp = isset($c['exp']) && is_numeric($c['exp']) ? (int) $c['exp'] : null;
+        $secondsRemaining = $exp !== null ? max(0, $exp - $at) : null;
+        $daysRemaining = $secondsRemaining !== null ? intdiv($secondsRemaining + 86399, 86400) : null;
+        return [
+            'isTrial' => isset($c['trial']) && $c['trial'] === true,
+            'expired' => $exp !== null ? $at >= $exp : false,
+            'expiresAt' => $exp,
+            'secondsRemaining' => $secondsRemaining,
+            'daysRemaining' => $daysRemaining,
+        ];
+    }
+
+    /** True when the licence carries trial:true. @param mixed $resultOrClaims */
+    public static function isTrial($resultOrClaims): bool
+    {
+        $c = self::claimsOf($resultOrClaims);
+        return isset($c['trial']) && $c['trial'] === true;
+    }
+
+    /** Whole days left before exp (rounded up); 0 once expired; null if no exp. @param mixed $resultOrClaims */
+    public static function daysRemaining($resultOrClaims, ?int $now = null): ?int
+    {
+        return self::trialInfo($resultOrClaims, $now)['daysRemaining'];
     }
 
     /**

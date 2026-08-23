@@ -67,6 +67,35 @@ $res = KeyWardenClient::validateOrVerify($licenceKey, [
 A rejected `clientKey` (401) is never masked by the offline path — only a genuine
 reachability failure falls back.
 
+## Free trials
+
+A trial licence is an ordinary Key-Warden key — validate it exactly like any
+other. It just carries two extra claims: `trial => true` and an `exp` (unix
+seconds). Once the trial ends, `verifyToken()`/`validate()` refuse it as
+`expired` on their own. The trial helpers are for **display** — showing
+"N days left" and switching to an expired state:
+
+```php
+$res = KeyWardenClient::verifyToken($cachedToken, getenv('KW_PUBLIC_KEY'));
+
+if ($res['valid']) {
+    $t = KeyWardenClient::trialInfo($res);   // ['isTrial','expired','expiresAt','secondsRemaining','daysRemaining']
+    if ($t['isTrial']) {
+        show_banner("Trial — {$t['daysRemaining']} day(s) left");
+    }
+    run_app();
+} elseif (($res['reason'] ?? '') === 'expired') {
+    show_paywall('Your trial has ended. Enter a licence key to continue.');
+}
+```
+
+`trialInfo()` accepts a `verifyToken()`/`validate()` result or a raw claims
+array. `isTrial($x)` and `daysRemaining($x)` are shortcuts. `daysRemaining` is
+rounded up (the last partial day still reads "1 day left") and is `0` once
+expired, `null` for a key with no `exp`. These helpers never grant access —
+always gate on `verifyToken()`/`validate()` first. Trial keys are node-locked to
+one device, so pass the same `machineId` you use for `validate()`.
+
 ## API
 
 | Method | Purpose |
@@ -75,6 +104,9 @@ reachability failure falls back.
 | `KeyWardenClient::verifyToken($token, $rawPubB64, $now?)` | Offline check. Returns `['valid', 'reason'?, 'claims'?]`. |
 | `KeyWardenClient::validateOrVerify($key, $opts)` | Online, falling back to a cached token when unreachable. |
 | `KeyWardenClient::machineIdFrom(...$parts)` | A stable SHA-256 machine id; raw parts never leave the machine. |
+| `KeyWardenClient::trialInfo($x, $now?)` | Trial facts for display: `['isTrial','expired','expiresAt','secondsRemaining','daysRemaining']`. |
+| `KeyWardenClient::isTrial($x)` | `true` when the licence carries `trial => true`. |
+| `KeyWardenClient::daysRemaining($x, $now?)` | Whole days left (rounded up); `0` once expired; `null` if no `exp`. |
 
 Any real failure (bad credentials, unreachable gateway, server error) throws
 `KeyWarden\KeyWardenError`, which carries `->errorCode` and `->status`. For tests,

@@ -293,5 +293,36 @@ check('unsealOnline returns the content key', function () {
     assertTrue($got === $key, 'online key');
 });
 
+echo "\nkeywarden(php): free-trial helpers\n";
+
+check('trialInfo reports a live trial with days left (rounded up)', function () use ($now) {
+    $info = KeyWardenClient::trialInfo(['claims' => ['trial' => true, 'exp' => $now + 3 * 86400 + 100]], $now);
+    assertTrue($info['isTrial'] === true, 'isTrial');
+    assertTrue($info['expired'] === false, 'not expired');
+    assertTrue($info['daysRemaining'] === 4, 'ceil(3d+100s) === 4');
+    assertTrue($info['expiresAt'] === $now + 3 * 86400 + 100, 'expiresAt');
+});
+
+check('isTrial / daysRemaining accept a verify result', function () use ($now) {
+    $r = ['valid' => true, 'claims' => ['trial' => true, 'exp' => $now + 7 * 86400]];
+    assertTrue(KeyWardenClient::isTrial($r) === true, 'isTrial');
+    assertTrue(KeyWardenClient::daysRemaining($r, $now) === 7, '7 days');
+});
+
+check('an expired trial reads expired true and 0 days', function () use ($now) {
+    $info = KeyWardenClient::trialInfo(['trial' => true, 'exp' => $now - 10], $now);
+    assertTrue($info['expired'] === true, 'expired');
+    assertTrue($info['daysRemaining'] === 0, '0 days');
+    assertTrue($info['secondsRemaining'] === 0, '0 seconds');
+});
+
+check('a non-trial perpetual key: isTrial false, no expiry', function () use ($now) {
+    $info = KeyWardenClient::trialInfo(['plan' => 'pro'], $now);
+    assertTrue($info['isTrial'] === false, 'not trial');
+    assertTrue($info['expired'] === false, 'not expired');
+    assertTrue($info['expiresAt'] === null, 'no expiry');
+    assertTrue($info['daysRemaining'] === null, 'no days');
+});
+
 echo "\n  $PASS passed, $FAIL failed\n";
 exit($FAIL === 0 ? 0 : 1);
