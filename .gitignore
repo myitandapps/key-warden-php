@@ -1,2 +1,7 @@
 /vendor/
 composer.lock
+
+# Visual Studio (local only - VS holds these open, and they are not source)
+.vs/
+*.user
+*.suo

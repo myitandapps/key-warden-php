@@ -7,6 +7,8 @@ offline against your embedded public key, with no network round-trip.
 Uses PHP's built-in [`sodium`](https://www.php.net/manual/en/book.sodium.php) for
 Ed25519 (bundled since PHP 7.2) and `curl`. PHP 7.2+.
 
+Current version: **1.5.0**.
+
 ```bash
 composer require key-warden/sdk
 ```
@@ -67,6 +69,105 @@ $res = KeyWardenClient::validateOrVerify($licenceKey, [
 A rejected `clientKey` (401) is never masked by the offline path — only a genuine
 reachability failure falls back.
 
+## Activation keys and grants
+
+A Key-Warden key is **opaque** — `KW-XXXX-XXXX-XXXX-XXXX`. It carries no plan, no
+seat count and no term. Those live on the licence record, so a renewal, an
+upgrade, a seat top-up or a revocation lands at the customer's next check with
+nothing for them to paste.
+
+Every check returns a signed **grant** bound to that key, that machine and that
+request. Verify it against the key **set** from your vendor console — a set, not
+a single key, so a signing-key rotation never breaks installs that have not
+updated yet:
+
+```php
+use KeyWarden\KeyWardenClient;
+use KeyWarden\Grant;
+
+$keys = [
+    ['kid' => 'mitaa-k1', 'pub' => 'BASE64_32_BYTE_KEY'],
+    ['kid' => 'mitaa-k2', 'pub' => 'BASE64_32_BYTE_KEY'],   // the incoming one
+];
+
+$res = KeyWardenClient::validate($licenceKey, [
+    'apimKey'   => $apimKey,
+    'clientKey' => $clientKey,
+    'machineId' => $machineId,
+    'keys'      => $keys,
+    'product'   => 'acme-maps',
+    'userCount' => $activeUsers,      // for banded plans
+    'envType'   => 'production',      // or let KW_ENV_TYPE / WP_ENVIRONMENT_TYPE decide
+    'siteLabel' => home_url(),        // optional, for the vendor console
+]);
+
+// $res['grantVerdict'] : 'accept' | 'deny' | 'fallback'  (absent if you baked no keys)
+// $res['expiresAt']    : the licence term (NOT $res['claims']['exp'])
+```
+
+Offline, the same check without a network:
+
+```php
+$g = Grant::verify($cachedToken, $keys, [
+    'activationKey' => $licenceKey,
+    'machineId'     => $machineId,
+    'nonce'         => $nonce,   // only if you still hold the one you sent
+]);
+// $g === ['verdict' => ..., 'reason' => ..., 'claims' => [...]]
+if ($g['verdict'] === 'accept')   { run_app(); }
+elseif ($g['verdict'] === 'deny') { lock_features($g['reason']); }
+else                              { keep_last_known_good(); }   // 'fallback'
+```
+
+`offline_allowed` is **opt-in and omitted** when you have not enabled it in the
+vendor console, so a cached grant returns `deny` / `offline_not_allowed` until
+you do. That is the offline path only — a verdict that just came back live from
+`validate()` is applied as-is.
+
+### Three verdicts, and why `fallback` is not a denial
+
+| Verdict | When | What you do |
+|---|---|---|
+| `accept` | good for this key and this machine | licence the product |
+| `deny` | wrong key, wrong machine, forged, expired past grace | lock it |
+| `fallback` | unknown `kid`, no keys baked in, unparseable | **keep your previous state** and re-check online |
+
+`fallback` means the SDK could not judge the grant, not that the grant is bad.
+Treating it as a denial turns a routine signing-key rotation into an outage. A
+**known** kid whose signature fails is a different thing entirely — that is
+forgery, and it denies.
+
+### `expires_at` is the term; `exp` is the refresh window
+
+The single most misread pair in the model.
+
+- `Grant::expiresAt($claims)` / `$claims['expires_at']` — when the **licence**
+  ends. Gate on this.
+- `$claims['exp']` — when the **grant** goes stale and should be refreshed. It is
+  `max(base TTL, grace + offline buffer)`, so an offline-enabled licence gets a
+  grant that deliberately outlives its own grace window. Gating access on `exp`
+  locks out paying customers.
+
+`Grant::needsRefresh($claims)` and `Grant::inGrace($claims)` answer those two
+questions directly.
+
+### What `validate()` now sends
+
+Three headers you get for free, and should not strip:
+
+- `X-Kw-Nonce` — a fresh 128-bit nonce per call, echoed inside the signed grant.
+  Without it a captured answer replays.
+- `X-Kw-Env-Type` — `production` unless you say otherwise (or `KW_ENV_TYPE` /
+  `WP_ENVIRONMENT_TYPE` says so). An undeclared staging site burns a **paid
+  production seat** — on WordPress that is the single most common way a vendor
+  runs out of seats they paid for. Anything unrecognised reads as production,
+  never the cheaper pool by accident.
+- `X-Site-Url` — the site label, for the vendor console.
+
+A grant that fails verification sets `grantVerdict` / `grantReason` and
+`trustworthy => false`. It does **not** flip `valid` to false — a verification
+fault is ours, not the customer's, and must never downgrade a paying licence.
+
 ## Free trials
 
 A trial licence is an ordinary Key-Warden key — validate it exactly like any
@@ -104,6 +205,10 @@ one device, so pass the same `machineId` you use for `validate()`.
 | `KeyWardenClient::verifyToken($token, $rawPubB64, $now?)` | Offline check. Returns `['valid', 'reason'?, 'claims'?]`. |
 | `KeyWardenClient::validateOrVerify($key, $opts)` | Online, falling back to a cached token when unreachable. |
 | `KeyWardenClient::machineIdFrom(...$parts)` | A stable SHA-256 machine id; raw parts never leave the machine. |
+| `Grant::verify($token, $keys, $opts)` | Offline grant check. Returns `['verdict', 'reason', 'claims'?]`. |
+| `Grant::expiresAt($claims)` | The licence term as unix seconds — `expires_at`, never `exp`. `null` for perpetual. |
+| `Grant::needsRefresh($claims, $now?)` | `true` once the grant's `exp` has passed and it should be re-fetched. |
+| `Grant::inGrace($claims, $now?)` | `true` when the licence has lapsed but is still inside its offline grace window. |
 | `KeyWardenClient::trialInfo($x, $now?)` | Trial facts for display: `['isTrial','expired','expiresAt','secondsRemaining','daysRemaining']`. |
 | `KeyWardenClient::isTrial($x)` | `true` when the licence carries `trial => true`. |
 | `KeyWardenClient::daysRemaining($x, $now?)` | Whole days left (rounded up); `0` once expired; `null` if no `exp`. |
@@ -115,8 +220,16 @@ pass a `'transport'` callable in `$opts` to stub the HTTP call.
 ## Verify the build yourself
 
 ```bash
-composer test        # -> "16 passed, 0 failed"
+composer test
+#   == legacy surface ==     24 passed, 0 failed
+#   == grant conformance ==  23 passed, 0 failed
+#   == client contract ==    18 passed, 0 failed
+#   == no-composer install == 4 passed, 0 failed
+#   ALL SUITES PASSED
 ```
+
+`tests/grant-vectors.json` is minted by the platform's **own** signer, not a
+lookalike, and all four SDKs run the same vectors — so they cannot drift apart.
 
 ## Publishing (Packagist)
 

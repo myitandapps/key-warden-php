@@ -1,0 +1,94 @@
+{
+ "note": "Minted by Key-Warden src/signing.signGrantToken (brand194). Do not hand-edit.",
+ "testSeed": "zrNRb4MN+bFCLYAAd3iawVG33YoOCeEljW7uFhLNGVE=",
+ "generated": "2026-09-13T08:04:50.315Z",
+ "keys": [
+  {
+   "kid": "acme-k1",
+   "pub": "YW8sYTh0Qdk+92yhnXBcBheSsRSimAs9bk50g9P3PRY="
+  }
+ ],
+ "activationKey": "KW-3A4S-37GR-LK95-P37D",
+ "machineId": "6f1c2d3e-4a5b-6c7d-8e9f-0a1b2c3d4e5f",
+ "nonce": "nonce-conformance-001",
+ "vectors": [
+  {
+   "name": "valid",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEwWiIsImV4cGlyZXNfYXQiOiIyMDI2LTExLTEyVDA4OjA0OjUwLjMxMFoiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc5MDU4MjY5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJvZmZsaW5lX2FsbG93ZWQiOnRydWUsImdyYWNlX3NlY29uZHMiOjEyMDk2MDAsImNub25jZSI6Im5vbmNlLWNvbmZvcm1hbmNlLTAwMSIsImZlYXR1cmVzIjpbInJlcG9ydHMiLCJleHBvcnQiXX0.XR_bCJNKeeaQhFuKuE2b_bAkmHvk9c8cj1PDcKd9rJbTvI-AtauvvcVQ2UghQz4BiCZN5o-Big32r6ey3-N8CA",
+   "verdict": "accept",
+   "why": "signed by a known kid, for this key and this machine, inside its term"
+  },
+  {
+   "name": "perpetual",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjAsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEyWiIsImV4cGlyZXNfYXQiOm51bGwsImlhdCI6MTc4OTI4NjY5MCwiZXhwIjoxNzkwNTgyNjkwLCJ2ZW5kb3IiOiJhY21lIiwibWlkIjoiOTBiZDU2ODA4OGFiMTNhZTE5ZmU0YTIxMDM2NDZkNzYyMzViMDI1Y2QxYTA5YmVjMmFlNjhhNDdmMTE0MDI0YyIsIm9mZmxpbmVfYWxsb3dlZCI6dHJ1ZSwiZ3JhY2Vfc2Vjb25kcyI6MTIwOTYwMCwiY25vbmNlIjoibm9uY2UtY29uZm9ybWFuY2UtMDAxIiwiZmVhdHVyZXMiOlsicmVwb3J0cyIsImV4cG9ydCJdfQ.o8J0-SJ25Ey8HYveCWjaVjRP6TW9CpmsaVyalddjS9Yl0pEZ1ibRoFi3XdJTHb0pGrhLwn3C3u14A047oLgpBg",
+   "verdict": "accept",
+   "why": "no expires_at means a perpetual licence - never treat a missing term as expired"
+  },
+  {
+   "name": "no_features",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEzWiIsImV4cGlyZXNfYXQiOiIyMDI2LTExLTEyVDA4OjA0OjUwLjMxM1oiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc5MDU4MjY5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJvZmZsaW5lX2FsbG93ZWQiOnRydWUsImdyYWNlX3NlY29uZHMiOjEyMDk2MDAsImNub25jZSI6Im5vbmNlLWNvbmZvcm1hbmNlLTAwMSIsImZlYXR1cmVzIjpbXX0.BizaFjKPAYlP_ETTHmP7im8fseqLWCFssn17f3t38ZuEr1-a3c3Gl-qCOmL47ALG4x0F1uvqKEMY-hs_Ks2-AA",
+   "verdict": "accept",
+   "why": "a plan may grant no feature keys; that is not an error"
+  },
+  {
+   "name": "wrong_key",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiJjNDczM2NhMmQ3MGFlMGYyODE4ZWNkYmQyYWIzODEwYTg5YjYwMzQyOTIyNzRlNTI5ZTBjZWUxNjM4ZTZmYjJmIiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEzWiIsImV4cGlyZXNfYXQiOiIyMDI2LTExLTEyVDA4OjA0OjUwLjMxM1oiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc5MDU4MjY5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJvZmZsaW5lX2FsbG93ZWQiOnRydWUsImdyYWNlX3NlY29uZHMiOjEyMDk2MDAsImNub25jZSI6Im5vbmNlLWNvbmZvcm1hbmNlLTAwMSIsImZlYXR1cmVzIjpbInJlcG9ydHMiLCJleHBvcnQiXX0.DlaT0MeJ_xjDGCWKPU3Bec0qSAtRuOScAuLSF42_EVVk7xikCWOWd6_wrDei8dWcO54l4RCcAp8LjRj7ckwLCA",
+   "verdict": "deny",
+   "why": "sub is sha256 of a DIFFERENT activation key - a grant lifted from another licence"
+  },
+  {
+   "name": "wrong_machine",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEzWiIsImV4cGlyZXNfYXQiOiIyMDI2LTExLTEyVDA4OjA0OjUwLjMxM1oiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc5MDU4MjY5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjlhYTE2ZTRlODRlNDNiNTA5NzdkN2I2NGIyYTIwOTIyMDkzNjhlYWRkZTgxNTJkZDY0ZDE0OGM4MTg3OTE1ZjAiLCJvZmZsaW5lX2FsbG93ZWQiOnRydWUsImdyYWNlX3NlY29uZHMiOjEyMDk2MDAsImNub25jZSI6Im5vbmNlLWNvbmZvcm1hbmNlLTAwMSIsImZlYXR1cmVzIjpbInJlcG9ydHMiLCJleHBvcnQiXX0.2zgMIJyzuZ3aHGtFj4HlLkoaclFQhmV5cnmT0sCCtRAyYQPeKy80XaOS_DG4Bs6CabxCTetkg8e3ppIRkURbDg",
+   "verdict": "deny",
+   "why": "mid is sha256 of a different machine - a grant copied to a second install"
+  },
+  {
+   "name": "expired",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEzWiIsImV4cGlyZXNfYXQiOiIyMDI2LTA4LTA0VDA4OjA0OjUwLjMxM1oiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc5MDU4MjY5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJvZmZsaW5lX2FsbG93ZWQiOnRydWUsImdyYWNlX3NlY29uZHMiOjEyMDk2MDAsImNub25jZSI6Im5vbmNlLWNvbmZvcm1hbmNlLTAwMSIsImZlYXR1cmVzIjpbInJlcG9ydHMiLCJleHBvcnQiXX0.ItPWzCqV4EG08iiWsTBE4kUrCHXVobWEjuEcLEpAxPYx-JqMNAPqa452zrThyOK2ja69xMdJkFw5W_4IRNNwDQ",
+   "verdict": "deny",
+   "why": "expires_at is past and beyond grace - the entitlement really has ended"
+  },
+  {
+   "name": "expired_in_grace",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEzWiIsImV4cGlyZXNfYXQiOiIyMDI2LTA5LTExVDA4OjA0OjUwLjMxM1oiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc5MDU4MjY5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJvZmZsaW5lX2FsbG93ZWQiOnRydWUsImdyYWNlX3NlY29uZHMiOjEyMDk2MDAsImNub25jZSI6Im5vbmNlLWNvbmZvcm1hbmNlLTAwMSIsImZlYXR1cmVzIjpbInJlcG9ydHMiLCJleHBvcnQiXX0.WjScFMptFNU5SHDt1DzzP91UULocyIs7oWQfN388DD2KSiFlj5to3OpE8rVVgutgsQMwgw-iyvPLTi5hX3UfAg",
+   "verdict": "accept",
+   "why": "expires_at is past but inside grace_seconds - still licensed, warn the user"
+  },
+  {
+   "name": "offline_not_allowed",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEzWiIsImV4cGlyZXNfYXQiOiIyMDI2LTExLTEyVDA4OjA0OjUwLjMxM1oiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc4OTM3MzA5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJjbm9uY2UiOiJub25jZS1jb25mb3JtYW5jZS0wMDEiLCJmZWF0dXJlcyI6WyJyZXBvcnRzIiwiZXhwb3J0Il19.qcVlY7gDCC_1dibzU0hxLa-rlKJ9TfunQbChQKdb3f2P7unGnzKLBzSMp8cRtEAuVkBX5Dki0GBdZJ1PIME4Dw",
+   "verdict": "deny",
+   "why": "offline_allowed is false: the vendor requires a live check, so a cached grant alone is not enough"
+  },
+  {
+   "name": "wrong_nonce",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtcHJvIiwic2VhdHMiOjUsImlzc3VlZF9hdCI6IjIwMjYtMDktMDNUMDg6MDQ6NTAuMzEzWiIsImV4cGlyZXNfYXQiOiIyMDI2LTExLTEyVDA4OjA0OjUwLjMxM1oiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc5MDU4MjY5MCwidmVuZG9yIjoiYWNtZSIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJvZmZsaW5lX2FsbG93ZWQiOnRydWUsImdyYWNlX3NlY29uZHMiOjEyMDk2MDAsImNub25jZSI6InNvbWVib2R5LWVsc2VzLW5vbmNlIiwiZmVhdHVyZXMiOlsicmVwb3J0cyIsImV4cG9ydCJdfQ.SmSHSZXx3u5TMNSo6PrLLR5s0NRjw2sy4ubk93lCNxeZKDTFsfy6SBtkykM9MR3hdB8sQ0FpCCu_uXVQZ94XBg",
+   "verdict": "deny",
+   "why": "cnonce does not echo the nonce WE sent - a replayed older answer"
+  },
+  {
+   "name": "foreign_signer",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImV2aWwtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtZW50ZXJwcmlzZSIsInNlYXRzIjo5OTksImlzc3VlZF9hdCI6IjIwMjYtMDktMTNUMDg6MDQ6NTAuMzE0WiIsImV4cGlyZXNfYXQiOiIyMDI5LTA2LTA4VDA4OjA0OjUwLjMxNFoiLCJpYXQiOjE3ODkyODY2OTAsImV4cCI6MTc4OTM3MzA5MCwidmVuZG9yIjoiZXZpbCIsIm1pZCI6IjkwYmQ1NjgwODhhYjEzYWUxOWZlNGEyMTAzNjQ2ZDc2MjM1YjAyNWNkMWEwOWJlYzJhZTY4YTQ3ZjExNDAyNGMiLCJjbm9uY2UiOiJub25jZS1jb25mb3JtYW5jZS0wMDEiLCJmZWF0dXJlcyI6WyJldmVyeXRoaW5nIl19.ld5J2CEmo8s9HyXkHbyiNZYmddpyvnfqeTKTgiyYRxFAUdoN7yYjvdd5s2ycRKLHiG1HIyvJpm15BlZGqnLCCg",
+   "verdict": "fallback",
+   "why": "signed by a kid this build has never heard of. NOT a denial: this is what a signing-key rotation looks like from the field, and denying would brick every install that has not updated yet"
+  },
+  {
+   "name": "tampered_payload",
+   "token": "eyJhbGciOiJFZERTQSIsInR5cCI6IktXVCIsImtpZCI6ImFjbWUtazEifQ.eyJzdWIiOiI0MmUzODEyMTA4ZWM5OGU5YjA5MWNiNzZmZWNlMjYzZTNiMDgzN2E2Y2EzZGRhNDEwNjBkNzZhZDVkNjQ2ZjI2IiwicGxhbiI6ImFjbWUtZW50ZXJwcmlzZSIsInNlYXRzIjo5OTk5LCJpc3N1ZWRfYXQiOiIyMDI2LTA5LTAzVDA4OjA0OjUwLjMxNFoiLCJleHBpcmVzX2F0IjoiMjAyNi0xMS0xMlQwODowNDo1MC4zMTRaIiwiaWF0IjoxNzg5Mjg2NjkwLCJleHAiOjE3OTA1ODI2OTAsInZlbmRvciI6ImFjbWUiLCJtaWQiOiI5MGJkNTY4MDg4YWIxM2FlMTlmZTRhMjEwMzY0NmQ3NjIzNWIwMjVjZDFhMDliZWMyYWU2OGE0N2YxMTQwMjRjIiwib2ZmbGluZV9hbGxvd2VkIjp0cnVlLCJncmFjZV9zZWNvbmRzIjoxMjA5NjAwLCJjbm9uY2UiOiJub25jZS1jb25mb3JtYW5jZS0wMDEiLCJmZWF0dXJlcyI6WyJyZXBvcnRzIiwiZXhwb3J0Il19.F0GNgaZRGclj__GM6PTE4k4AkrLp1GFBFs3jevgAFlT1oF3o6RzF4YOj4lxD_axjVpBRk5w4kLyUOZZAZQ33Dg",
+   "verdict": "deny",
+   "why": "claims edited under a known kid - the signature no longer checks, which is forgery, not rotation"
+  },
+  {
+   "name": "malformed",
+   "token": "not-a-grant",
+   "verdict": "fallback",
+   "why": "unparseable: conclude nothing and re-check online"
+  },
+  {
+   "name": "empty",
+   "token": "",
+   "verdict": "fallback",
+   "why": "no grant at all - the normal state before the first successful check"
+  }
+ ]
+}

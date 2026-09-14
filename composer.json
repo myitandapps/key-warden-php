@@ -3,14 +3,25 @@
     "description": "Official PHP client for Key-Warden - validate software licences online (seat- and revocation-aware) or verify signed Ed25519 tokens offline against your embedded public key.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["key-warden", "keywarden", "licence", "license", "licensing", "activation", "ed25519", "offline-verification"],
+    "keywords": [
+        "key-warden",
+        "keywarden",
+        "licence",
+        "license",
+        "licensing",
+        "activation",
+        "ed25519",
+        "offline-verification"
+    ],
     "homepage": "https://key-warden.com",
     "support": {
         "source": "https://github.com/myitandapps/key-warden-php",
         "issues": "https://key-warden.com/contact"
     },
     "authors": [
-        { "name": "Key-Warden" }
+        {
+            "name": "Key-Warden"
+        }
     ],
     "require": {
         "php": ">=7.2",
@@ -20,9 +31,11 @@
         "ext-json": "*"
     },
     "autoload": {
-        "psr-4": { "KeyWarden\\": "src/" }
+        "psr-4": {
+            "KeyWarden\\": "src/"
+        }
     },
     "scripts": {
-        "test": "php tests/run-tests.php"
+        "test": "php tests/run-all.php"
     }
 }

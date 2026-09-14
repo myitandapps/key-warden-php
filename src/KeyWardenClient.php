@@ -26,7 +26,7 @@ namespace KeyWarden;
 final class KeyWardenClient
 {
     /** SDK version (matches the git tag / Packagist release). */
-    public const VERSION = '1.3.0';
+    public const VERSION = '1.5.0';
     public const DEFAULT_BASE = 'https://api.key-warden.com';
     private const VALIDATE_PATH = '/keywarden/validate';
 
@@ -173,13 +173,38 @@ final class KeyWardenClient
         if ($machineId) {
             $payload['machineId'] = $machineId;
         }
+        /* v1.5.0: product is a DECLARATION, not a defence - every product
+           validates against the one endpoint, so the binding is enforced by
+           checking the plan the answer names against what your build expects.
+           Sending it lets the platform attribute the check correctly. */
+        if (!empty($opts['product'])) {
+            $payload['product'] = (string) $opts['product'];
+        }
+        if (isset($opts['userCount']) && $opts['userCount'] !== '') {
+            $payload['userCount'] = (int) $opts['userCount'];
+        }
+
+        /* v1.5.0: a fresh nonce per call. The platform binds it into the signed
+           grant as `cnonce`; we refuse any grant echoing a different one, which
+           is what stops a captured answer being replayed at us. */
+        $nonce = self::randomNonce();
+
         $headers = [
             'Content-Type' => 'application/json',
             'Ocp-Apim-Subscription-Key' => $apimKey,
             'X-Client-Key' => $clientKey,
+            'X-Kw-Nonce' => $nonce,
+            /* v1.5.0: WHICH SEAT POOL this install draws from. A tiered plan keeps
+               two independent pools and a request that declares NOTHING is counted
+               against the production one - so before this, every PHP install
+               (including staging) burned a paid production seat. */
+            'X-Kw-Env-Type' => self::envType($opts['envType'] ?? null),
         ];
         if ($machineId) {
             $headers['X-Machine-Id'] = (string) $machineId;
+        }
+        if (!empty($opts['siteLabel'])) {
+            $headers['X-Site-Url'] = substr((string) $opts['siteLabel'], 0, 200);
         }
 
         $request = [
@@ -218,7 +243,76 @@ final class KeyWardenClient
         }
 
         // 200 with {valid} is the licence verdict - true or false, both normal.
+
+        /*
+         * v1.5.0: the grant is what this install will trust offline for days, so
+         * it is verified HERE, the same way it will be verified later, before the
+         * caller ever sees it. A grant that does not verify is REPORTED - it is
+         * not silently returned as though it were good, and it does not turn into
+         * valid:false either.
+         *
+         * That distinction matters: a verification fault is OUR problem, not the
+         * customer's, and must never downgrade a paying licence. The caller gets
+         * grantVerdict / grantReason and can keep its previous state.
+         */
+        $keys = $opts['keys'] ?? ($opts['publicKey'] ?? null);
+        if (!empty($body['token']) && $keys) {
+            /* Composer's PSR-4 autoloader resolves KeyWarden\Grant on its own.
+               This guard is for the install that includes these files by hand -
+               without it, passing a key set would fatal on a missing class
+               rather than verify anything. */
+            if (!class_exists(__NAMESPACE__ . '\\Grant', true)) {
+                require_once __DIR__ . '/Grant.php';
+            }
+            $v = Grant::verify((string) $body['token'], $keys, [
+                'activationKey' => $key,
+                'machineId' => $machineId,
+                'nonce' => $nonce,
+            ]);
+            $body['grantVerdict'] = $v['verdict'];
+            $body['grantReason'] = $v['reason'];
+            $body['claims'] = $v['claims'] ?? null;
+            if (!empty($v['claims'])) {
+                $body['expiresAt'] = Grant::expiresAt($v['claims']);
+                $body['inGrace'] = Grant::inGrace($v['claims']);
+                $body['needsRefresh'] = Grant::needsRefresh($v['claims']);
+                if (!isset($body['features']) && isset($v['claims']['features']) && is_array($v['claims']['features'])) {
+                    $body['features'] = array_map('strval', $v['claims']['features']);
+                }
+            }
+            if ($v['verdict'] === 'deny') {
+                $body['trustworthy'] = false;
+            }
+        }
         return $body;
+    }
+
+    /** A fresh 128-bit nonce per validate call. */
+    private static function randomNonce(): string
+    {
+        if (function_exists('random_bytes')) {
+            return bin2hex(random_bytes(16));
+        }
+        // PHP 7.2+ always has random_bytes; this is belt-and-braces only.
+        return bin2hex(pack('NNNN', mt_rand(), mt_rand(), mt_rand(), mt_rand()));
+    }
+
+    /**
+     * production | non-production, for the seat pool.
+     *
+     * Conservative by design: anything not recognised as a non-production label
+     * reads as production, so a site can never talk itself into the cheaper pool
+     * by accident. Set KW_ENV_TYPE on a staging box, or pass opts['envType'].
+     */
+    private static function envType($explicit): string
+    {
+        if ($explicit) {
+            return $explicit === 'non-production' ? 'non-production' : 'production';
+        }
+        $raw = strtolower(trim((string) (getenv('KW_ENV_TYPE') ?: (getenv('WP_ENVIRONMENT_TYPE') ?: ''))));
+        $nonProd = ['local', 'development', 'dev', 'staging', 'stage', 'test', 'testing',
+                    'uat', 'sandbox', 'qa', 'preprod', 'pre-production'];
+        return in_array($raw, $nonProd, true) ? 'non-production' : 'production';
     }
 
     /**
