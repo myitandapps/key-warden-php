@@ -26,7 +26,7 @@ namespace KeyWarden;
 final class KeyWardenClient
 {
     /** SDK version (matches the git tag / Packagist release). */
-    public const VERSION = '1.5.0';
+    public const VERSION = '1.5.1';
     public const DEFAULT_BASE = 'https://api.key-warden.com';
     private const VALIDATE_PATH = '/keywarden/validate';
 

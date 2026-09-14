@@ -5,3 +5,12 @@ composer.lock
 .vs/
 *.user
 *.suo
+*.sln.docstates
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
