@@ -1,7 +1,8 @@
-# unzip key-warden-php-sdk-1.2.1.zip over your key-warden-php working copy
 git add .
-git commit -m "PHP SDK 1.5.0: free-trial display helpers (trialInfo/isTrial/daysRemaining)"
+git commit -m "SDK v1.2.1: code protection (seal / unlock / unseal)"
 git push
 
-git tag v1.5.0
+git tag sdk-node-v1.2.1
+git tag sdk-python-v1.2.1
+git tag sdk-dotnet-v1.2.1
 git push --tags

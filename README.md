@@ -7,7 +7,7 @@ offline against your embedded public key, with no network round-trip.
 Uses PHP's built-in [`sodium`](https://www.php.net/manual/en/book.sodium.php) for
 Ed25519 (bundled since PHP 7.2) and `curl`. PHP 7.2+.
 
-Current version: **1.5.1**.
+Current version: **1.5.2**.
 
 ```bash
 composer require key-warden/sdk
